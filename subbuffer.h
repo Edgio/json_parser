@@ -912,8 +912,8 @@ public:
 
         inline bool operator< (const subbuffer& sb) const
         {
-                if (!m_len) return sb.m_len ?  0 : -1;
-                if (!sb.m_len) return 1;
+                if (!m_len) return sb.m_len ?  true : false;
+                if (!sb.m_len) return false;
 
                 if (*m_p != *sb.m_p) return *m_p < *sb.m_p;
 
