@@ -390,7 +390,7 @@ public:
 
                 if (CASE_SENSITIVE == char_case)
                 {
-                        const char* p = std::search(m_p, m_p + m_len, sb.m_p, sb.m_p + sb.m_len);
+                        const char* p = std::search(m_p + pos, m_p + m_len, sb.m_p, sb.m_p + sb.m_len);
                         return (p == m_p + m_len) ? npos : (const char*)p - m_p;
                 }
 

@@ -1,0 +1,1 @@
+g++ -fprofile-arcs -ftest-coverage whitebox_subbuffer.cc -o whitebox-subbuffer
