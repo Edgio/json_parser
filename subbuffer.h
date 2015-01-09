@@ -47,8 +47,6 @@
  */
 enum case_sensitivity_t { CASE_INSENSITIVE, CASE_SENSITIVE };
 
-class buffer;
-
 /**
   @brief Non-owned reference to a (possibly not null-terminated) substring
 
@@ -61,7 +59,6 @@ class buffer;
  */
 class subbuffer
 {
-        friend class buffer;
 public:
         static const size_t npos = ULONG_MAX;
 
@@ -929,31 +926,19 @@ private:
         size_t m_len;
 };
 
-struct subbuffer_fast_cmp
-{
-        bool operator()(const subbuffer& x, const subbuffer& y) const
-        {
-                if (y.begin() == NULL) return false;
-                if (x.begin() == NULL) return true;
-                if (x.length() < y.length()) return true;
-                if (x.length() > y.length()) return false;
-                return ::strncasecmp(x.begin(), y.begin(), x.length()) < 0;
-        }
-};
-
 /**
   @brief struct for using subbuffer in std collections.
   buffer equals function
   */
 struct subbuffer_equals
 {
-        inline std::size_t operator()(const subbuffer& x, const subbuffer& y) const
+        inline bool operator()(const subbuffer& x, const subbuffer& y) const
         {
                 return (x.equals(y));
         }
 };
 
-struct subbuffer_hasher 
+struct subbuffer_hash 
 {
         inline size_t operator()(const subbuffer& sb) const
         {
