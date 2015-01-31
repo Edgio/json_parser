@@ -1,3 +1,0 @@
-g++ -O2 whitebox_subbuffer.cc -o whitebox-subbuffer
-g++ -O2 whitebox_aton.cc -o whitebox-aton
-g++ -O2 whitebox_json_parser.cc -o whitebox-json-parser

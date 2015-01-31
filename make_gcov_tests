@@ -1,3 +1,0 @@
-g++ -fprofile-arcs -ftest-coverage whitebox_subbuffer.cc -o whitebox-subbuffer
-g++ -fprofile-arcs -ftest-coverage whitebox_aton.cc -o whitebox-aton
-g++ -fprofile-arcs -ftest-coverage whitebox_json_parser.cc -o whitebox-json-parser

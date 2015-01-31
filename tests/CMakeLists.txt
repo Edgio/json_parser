@@ -6,4 +6,8 @@ add_executable(whitebox_aton whitebox_aton.cc)
 
 include_directories(BEFORE ../include)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -fprofile-arcs -ftest-coverage")
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
+
+
