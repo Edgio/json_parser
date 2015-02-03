@@ -32,3 +32,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -fprofile-arcs -ftest-
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
 
 
+enable_testing()
+
+add_test (whitebox_aton whitebox_aton)
+add_test (whitebox_json_parser whitebox_json_parser)
+add_test (whitebox_subbuffer whitebox_subbuffer)
