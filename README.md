@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------------
+<!------------------------------------------------------------------------------
 # Copyright (C) 2015 Verizon.  All Rights Reserved.
 # All Rights Reserved
 #
@@ -17,21 +17,23 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-# ------------------------------------------------------------------------------
+------------------------------------------------------------------------------>
 
 json_parser
 ===========
 
-Lightweight, header only DOM json_parser. Fairly fast and fairly light. Built to handle most JSON. Any encoded/escaped test fields in the JSON will still be encoded/escaped after they are parsed. It is up to the user to decide which fields need unencoding. 
+Lightweight, header only DOM json_parser. Fairly fast and fairly light. Built to handle most JSON. Any encoded/escaped test fields in the JSON will still be encoded/escaped after they are parsed. It is up to the user to decide which fields need unencoding.
 
 The whitebox tests are the only files that need built. The rest of the files are header only implementations so just include them and use them.
 
 Build the whitebox tests:
+
     cd build;
     cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ..
     make
 
 Build the whitebox tests for profiling with gcov:
+
     cd build;
     cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ..
     make
@@ -39,17 +41,17 @@ Build the whitebox tests for profiling with gcov:
 Note: The whitebox_aton test takes a while because it is doing timings. There is a noticable difference in the time to run it between Release and Debug.
 
 
-helper classes (subbuffer, subparser, aton, chrgrp, json_array, json_object)
-============================================================================
+Helper Classes
+--------------
 
-They are packaged here as helper classes, however, in our primary source tree they are used independently of json_parser.
+They are packaged here as helper classes, however their uses potentially extend beyond just this application.
 
-subbuffer: A const char* and length wrapped into a class with easy to understand methods added. Unless we specifically need a NULL terminated string, subbuffers are passed in all new code instead of "const char*" and "const string&".
+`subbuffer`: A const char* and length wrapped into a class with easy to understand methods added. Unless we specifically need a NULL terminated string, subbuffers are passed in all new code instead of `const char*` and `const string&`.
 
-subparser: Parses subbuffers with a user supplied delimiter. The delimiter can be a char, chargrp or another subbuffer.
+`subparser`: Parses `subbuffers` with a user supplied delimiter. The delimiter can be a `char`, `chargrp` or another `subbuffer`.
 
-aton: Performs alphanumeric to numeric conversions on subbuffers. 
+`aton`: Performs alphanumeric to numeric conversions on `subbuffers`.
 
-chargrp: A set of ascii chars (0-255) used for comparisons. If you want to match on a char in a group of user specified chars in any order, this works.
+`chargrp`: A set of ascii chars (0-255) used for comparisons. If you want to match on a char in a group of user specified chars in any order, this works.
 
-json_array & json_object: Provides an easy way of building JSON output.
+`json_array` and `json_object`: Provides an easy way of building JSON output.
