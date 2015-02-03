@@ -1,5 +1,5 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2014 Verizon.  All Rights Reserved.
+//: Copyright (C) 2015 Verizon.  All Rights Reserved.
 //:
 //: \file:    json_parser_test.cc
 //: \details: Test json_parser against other parsers.

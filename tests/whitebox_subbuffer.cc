@@ -1,5 +1,5 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2014 Verizon.  All Rights Reserved.
+//: Copyright (C) 2015 Verizon.  All Rights Reserved.
 //:
 //: \file:    whitebox_subbuffer.cc
 //: \details: Test driver to exercise the subbuffer logic

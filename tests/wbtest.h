@@ -1,5 +1,5 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2014 Verizon.  All Rights Reserved.
+//: Copyright (C) 2015 Verizon.  All Rights Reserved.
 //:
 //: \file:    wbtest.h
 //: \details: A simplified test harness with no external dependencies
@@ -29,6 +29,9 @@ class wbtester
 {
 public:
         wbtester() : m_name(NULL), m_tests(0), m_failed(0), m_funcs() {}
+
+        wbtester(const wbtester&);
+        wbtester& operator=(const wbtester&);
 
         void add_test(const char* test_name, void (*func)(wbtester&))
         {
