@@ -26,17 +26,19 @@ Lightweight, header only DOM json_parser. Fairly fast and fairly light. Built to
 
 The whitebox tests are the only files that need built. The rest of the files are header only implementations so just include them and use them.
 
-Build the whitebox tests:
+Build the whitebox tests (out-of-tree suggested):
 
-    cd build;
+    mkdir -p build && cd build;
     cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ..
     make
+    make test
 
 Build the whitebox tests for profiling with gcov:
 
-    cd build;
+    mkdir -p build && cd build;
     cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ..
     make
+    make test
 
 Note: The whitebox_aton test takes a while because it is doing timings. There is a noticable difference in the time to run it between Release and Debug.
 
