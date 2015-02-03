@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
 # Copyright (C) 2015 Verizon.  All Rights Reserved.
 # All Rights Reserved
-# 
+#
 #   Author: Donnevan Scott yeager
 #   Date:   02/03/2015
 #
@@ -27,6 +27,8 @@ cmake_minimum_required(VERSION 2.6)
 add_definitions(-Wall)
 add_definitions(-Werror)
 add_definitions(-Weffc++)
+
+enable_testing()
 
 # include source and test directories
 add_subdirectory(tests)
