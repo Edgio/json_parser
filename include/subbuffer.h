@@ -33,8 +33,6 @@
 #include <string.h>
 #include <sys/types.h>
 
-#define CONST_STR_LEN(x) (x), ((x) ? sizeof(x) - 1 : 0)
-
 #define SUBBUF_LEN(x) ((x).begin()), ((x).length())
 
 #define CONST_SUBBUF(x) subbuffer(x, sizeof(x) - 1)

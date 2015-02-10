@@ -124,6 +124,27 @@ namespace json
                         return subbuffer(0, 0);
                 }
 
+                inline subbuffer unescape(std::string& dest) const
+                {
+                        dest.clear();
+                        if (m_type == BOOL)
+                        {
+                                dest = m_val.bval ? "true" : "false";
+                        }
+                        else if (m_type == STRING)
+                        {
+                                dest.reserve(m_sval.length());
+                                const char* first = m_sval.begin();
+                                const char* last = first + m_sval.length();
+                                while (first != last)
+                                {
+                                        if (*first == '\\')  ++first;
+                                        dest += *first++;
+                                }
+                        }
+                        return subbuffer(dest.c_str(), dest.length());
+                }
+
                 /**
                   @brief Only valid for NUMBER and BOOL values.
                   @returns The value for NUMBER values and 1.0 or 0.0 for BOOL values.

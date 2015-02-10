@@ -148,9 +148,16 @@ static void test_escaped(wbtester& t)
         arr.to_string(json_text);
 
         json::root aroot(json_text);
+        std::string dest;
         t.REQUIRE(aroot[0].numb() == 1);
         t.REQUIRE(aroot[1].str().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
+        t.REQUIRE(aroot[1].unescape(dest).equals("bob is \"tall\"\n\"thin\"\n\"bald\""));
         t.REQUIRE(aroot[2].str().equals("hello"));
+
+
+        json::root broot("[\"this is a\\? regex\"]");
+        t.REQUIRE(broot[0].str().equals("this is a\\? regex"));
+        t.REQUIRE(broot[0].unescape(dest).equals("this is a\? regex"));
 }
 
 inline uint64_t get_microseconds()
