@@ -45,8 +45,8 @@
 #include <vector>
 
 
-// Predefine JSON_TRACE, JSON_WARNING and JSON_ERROR in a wrapper script if you want the traces, warnings and errors to use your 
-// internal logging 
+// Predefine JSON_TRACE, JSON_WARNING and JSON_ERROR in a wrapper script if you want the traces, warnings and errors to use your
+// internal logging
 
 #ifndef JSON_TRACE
 #define JSON_TRACE(fmt, x...) fprintf(stderr, "TRACE %s:%d: " fmt "\n", __FILE__, __LINE__, ## x)
@@ -124,12 +124,20 @@ namespace json
                         return subbuffer(0, 0);
                 }
 
-                inline subbuffer unescape(std::string& dest) const
+                /**
+                   @brief  Perform limited unescapging of string values into the provided dest buffer
+                   @details THIS FUNCTION IS ONLY PARTIALLY IMPLEMENTED.
+                            We only correctly unescape \", \\ and \/ sequences.  Lots more to be added
+                            http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
+                   @returns A temporary object representing the destination string with
+                 */
+                template <typename BUFF>
+                inline subbuffer unescape(BUFF& dest) const
                 {
                         dest.clear();
                         if (m_type == BOOL)
                         {
-                                dest = m_val.bval ? "true" : "false";
+                                dest.assign(m_val.bval ? "true" : "false");
                         }
                         else if (m_type == STRING)
                         {
