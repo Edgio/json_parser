@@ -85,13 +85,12 @@ namespace json
          */
         class value
         {
+                friend object;
+                friend array;
         public:
                 inline value() :m_type(UNSET), m_sval(), m_val() {}
                 inline virtual ~value();
-                /**
-                  @brief Reset the member variables to a pristine state.
-                 */
-                inline void clear();
+
 
                 /**
                   @brief Helper method for converting portions of the parsed JSON back into JSON text.
@@ -157,7 +156,7 @@ namespace json
                   @brief Only valid for NUMBER and BOOL values.
                   @returns The value for NUMBER values and 1.0 or 0.0 for BOOL values.
                  */
-                inline double numb() const
+                inline double numb(double default_val = 0.0) const
                 {
                         if (m_type == NUMBER) return m_val.dval;
                         if (m_type == BOOL)
@@ -165,7 +164,7 @@ namespace json
                                 if (m_val.bval) return 1.0;
                                 return 0.0;
                         }
-                        return 0.0;
+                        return default_val;
                 }
 
                 /**
@@ -226,6 +225,12 @@ namespace json
                 inline val_type get_type() const { return m_type; }
 
                 inline subbuffer raw_subbuffer() const;
+        protected:
+                /**
+                  @brief Reset the member variables to a pristine state.
+                 */
+                inline void clear();
+
         private:
                 val_type m_type;
                 subbuffer m_sval;
@@ -245,6 +250,7 @@ namespace json
          */
         class object
         {
+                friend value;
         public:
                 inline object() :m_vals(), m_unset(), m_sval() {}
                 inline ~object() {}
@@ -334,6 +340,13 @@ namespace json
                         return true;
                 }
 
+
+                inline subbuffer raw_subbuffer() const { return m_sval; }
+
+                inline std::map<subbuffer, value>::iterator begin() { return m_vals.begin(); }
+                inline std::map<subbuffer, value>::iterator end() { return m_vals.end(); }
+
+        private:
                 inline void clear()
                 {
                         for (std::map<subbuffer, value>::iterator iter = m_vals.begin();
@@ -345,12 +358,6 @@ namespace json
                         m_vals.clear();
                 }
 
-                inline subbuffer raw_subbuffer() const { return m_sval; }
-
-                inline std::map<subbuffer, value>::iterator begin() { return m_vals.begin(); }
-                inline std::map<subbuffer, value>::iterator end() { return m_vals.end(); }
-
-        private:
                 std::map<subbuffer, value> m_vals;
                 value m_unset;
                 subbuffer m_sval;
@@ -358,6 +365,8 @@ namespace json
 
         class array
         {
+                friend value;
+                friend object;
         public:
                 inline array():m_vals(), m_sval() {}
                 inline ~array() {}
@@ -401,6 +410,15 @@ namespace json
                         return true;
                 }
 
+                inline value& operator[] (subbuffer /*key*/) const { return s_unset; }
+                inline value& operator[] (size_t key)
+                {
+                        if (m_vals.size() <= key) return s_unset;
+                        return m_vals[key];
+                }
+
+                inline subbuffer raw_subbuffer() const { return m_sval; }
+        private:
                 inline void clear()
                 {
                         for (std::vector<value>::iterator iter = m_vals.begin();
@@ -411,15 +429,7 @@ namespace json
                         }
                         m_vals.clear();
                 }
-                inline value& operator[] (subbuffer /*key*/) const { return s_unset; }
-                inline value& operator[] (size_t key)
-                {
-                        if (m_vals.size() <= key) return s_unset;
-                        return m_vals[key];
-                }
 
-                inline subbuffer raw_subbuffer() const { return m_sval; }
-        private:
                 std::vector<value> m_vals;
                 subbuffer m_sval;
         };
@@ -489,8 +499,9 @@ namespace json
 
         value::~value()
         {
-                // do nadda here until the copy constructor is implemented fully
-                //clear();
+                // clearing starts from the root object and only the root object.
+                // create the root, make all the copies of values that you want and 
+                // they will be valid so long as the root exists.
         }
 
         template<typename BUFF> void value::to_json(BUFF& json_text) const
