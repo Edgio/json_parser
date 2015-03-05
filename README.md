@@ -25,12 +25,14 @@ json_parser
 Lightweight, header only DOM json_parser. Fairly fast and fairly light. Built to handle most JSON. Any encoded/escaped test fields in the JSON will still be encoded/escaped after they are parsed. It is up to the user to decide which fields need unencoding.
 
 So far I have only compared json_parser's speed against rapidjson. For those comparisons I parsed 140MB of JSON which had 100K objects. Each object had 30 key/value pairs with string values. Each object also had an array of 50 numbers (doubles). The closest I came was 1.8 times slower than rapidjson. Each test run was a separate run of the process. After parsing the JSON, each test walked through the resuls checking the validity of the values.
+
     json_parser: 141533401 bytes, objects: 100000, numbers: 50, attributes: 30, parse us: 1465640, check us: 1750130     // -O2
     json_parser: 141533401 bytes, objects: 100000, numbers: 50, attributes: 30, parse us: 1374260, check us: 1701616     // -O3
     rapidjson:   141533401 bytes, objects: 100000, numbers: 50, attributes: 30, parse us: 819425,  check us: 1767048
     rapidjson:   141533401 bytes, objects: 100000, numbers: 50, attributes: 30, parse us: 811476,  check us: 1766306 
 
 Example Usage: 
+
     // This example is fully coded in the examples dir.
     std::string json_buffer;
     // fill json_buffer with json data from somewhere (file, HTTP, TCP, etc)
