@@ -85,8 +85,8 @@ namespace json
          */
         class value
         {
-                friend object;
-                friend array;
+                friend class object;
+                friend class array;
         public:
                 inline value() :m_type(UNSET), m_sval(), m_val() {}
                 inline virtual ~value();
@@ -250,7 +250,7 @@ namespace json
          */
         class object
         {
-                friend value;
+                friend class value;
         public:
                 inline object() :m_vals(), m_unset(), m_sval() {}
                 inline ~object() {}
@@ -365,8 +365,8 @@ namespace json
 
         class array
         {
-                friend value;
-                friend object;
+                friend class value;
+                friend class object;
         public:
                 inline array():m_vals(), m_sval() {}
                 inline ~array() {}
@@ -500,7 +500,7 @@ namespace json
         value::~value()
         {
                 // clearing starts from the root object and only the root object.
-                // create the root, make all the copies of values that you want and 
+                // create the root, make all the copies of values that you want and
                 // they will be valid so long as the root exists.
         }
 
