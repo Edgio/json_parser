@@ -30,9 +30,14 @@
 #include <string>
 #include <vector>
 
-bool check_string(json::value& val, subbuffer exp)
+bool check_subbuffer(json::value& val, subbuffer exp)
 {
-        return !val.is_unset() && val.is_string() && val.str().equals(exp);
+        return !val.is_unset() && val.is_string() && val.sub().equals(exp);
+}
+
+bool check_string(json::value& val, const std::string& exp)
+{
+        return !val.is_unset() && val.is_string() && val.str() == exp;
 }
 
 bool check_numb(json::value& val, double exp)
@@ -65,20 +70,21 @@ static void test_object(wbtester& t)
         t.REQUIRE(root["not_there"].is_unset());
         t.REQUIRE(false == root.exists("address"));
         t.REQUIRE(root["address"].is_unset());
+        t.REQUIRE(check_subbuffer(root["name"], "Hal"));
         t.REQUIRE(check_string(root["name"], "Hal"));
         t.REQUIRE(root["name"].numb() == 0.0);
         t.REQUIRE(check_numb(root["age"], 23));
-        t.REQUIRE(root["age"].str().empty());
+        t.REQUIRE(root["age"].sub().empty());
         t.REQUIRE(check_array(root["aliases"], 3));
         t.REQUIRE(root["aliases"].raw_subbuffer().equals("[\"Bob\",\"Joe\",\"Sam\"]"));
         t.REQUIRE(check_object(root["wife"]));
         t.REQUIRE(root["wife"].raw_subbuffer().equals("{\"name\":\"wifey\"}"));
         t.REQUIRE(check_bool(root["old"], false));
         t.REQUIRE(check_bool(root["male"], true));
-        t.REQUIRE(root["male"].str().equals("true"));
+        t.REQUIRE(root["male"].sub().equals("true"));
         t.REQUIRE(root["male"].numb() == 1.0);
         t.REQUIRE(check_bool(root["female"], false));
-        t.REQUIRE(root["female"].str().equals("false"));
+        t.REQUIRE(root["female"].sub().equals("false"));
         t.REQUIRE(root["female"].numb() == 0.0);
 }
 
@@ -87,7 +93,7 @@ static void test_object2(wbtester& t)
         const char* json_text = "\
 [\
   {\
-     \"key\"     : \"cache-purge\",	    \
+     \"key\"     : \"cache-purge\",         \
      \"val\"\
 :[\
    {\"uri\":\"abc\"}\
@@ -97,7 +103,7 @@ static void test_object2(wbtester& t)
    {\"uri\":\"123\"}\
 \
 \
-	\
+        \
 ]\
 ,\
  \"expires\":\"9999999999\"\
@@ -114,6 +120,7 @@ static void test_object2(wbtester& t)
 
         t.REQUIRE(val[""].is_unset());
         t.REQUIRE(val["address"].is_unset());
+        t.REQUIRE(check_subbuffer(val["key"], "cache-purge"));
         t.REQUIRE(check_string(val["key"], "cache-purge"));
 
         json::value& subval = val["val"];
@@ -121,9 +128,12 @@ static void test_object2(wbtester& t)
         t.REQUIRE(check_object(subval[0]));
         t.REQUIRE(check_object(subval[1]));
 
+        t.REQUIRE(check_subbuffer(subval[0]["uri"], "abc"));
         t.REQUIRE(check_string(subval[0]["uri"], "abc"));
+        t.REQUIRE(check_subbuffer(subval[1]["uri"], "123"));
         t.REQUIRE(check_string(subval[1]["uri"], "123"));
 
+        t.REQUIRE(check_subbuffer(val["expires"], "9999999999"));
         t.REQUIRE(check_string(val["expires"], "9999999999"));
 }
 
@@ -138,7 +148,7 @@ static void test_escaped(wbtester& t)
 
         json::root root(json_text);
         json::value& desc = root["desc"];
-        t.REQUIRE(desc.str().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
+        t.REQUIRE(desc.sub().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
 
         json_array arr;
         arr.add(1);
@@ -150,13 +160,13 @@ static void test_escaped(wbtester& t)
         json::root aroot(json_text);
         std::string dest;
         t.REQUIRE(aroot[0].numb() == 1);
-        t.REQUIRE(aroot[1].str().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
+        t.REQUIRE(aroot[1].sub().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
         t.REQUIRE(aroot[1].unescape(dest).equals("bob is \"tall\"\n\"thin\"\n\"bald\""));
-        t.REQUIRE(aroot[2].str().equals("hello"));
+        t.REQUIRE(aroot[2].sub().equals("hello"));
 
 
         json::root broot("[\"this is a\\? regex\"]");
-        t.REQUIRE(broot[0].str().equals("this is a\\? regex"));
+        t.REQUIRE(broot[0].sub().equals("this is a\\? regex"));
         t.REQUIRE(broot[0].unescape(dest).equals("this is a\? regex"));
 }
 

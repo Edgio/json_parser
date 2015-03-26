@@ -112,7 +112,7 @@ namespace json
                   @brief Only valid for STRING and BOOL values.
                   @returns The value for STRING values and "true" or "false" for BOOL values.
                  */
-                inline subbuffer str() const
+                inline subbuffer sub() const
                 {
                         if (m_type == STRING) return m_sval;
                         if (m_type == BOOL)
@@ -121,6 +121,14 @@ namespace json
                                 return "false";
                         }
                         return subbuffer(0, 0);
+                }
+                /**
+                  @brief  Return a std::string object for STRING and BOOL values
+                  @returns The value for STRING values and "true" or "false" for BOOL values.
+                 */
+                inline std::string str() const
+                {
+                        return std::string(sub().begin(), sub().length());
                 }
 
                 /**
