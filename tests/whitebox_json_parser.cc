@@ -32,7 +32,7 @@
 
 bool check_subbuffer(json::value& val, subbuffer exp)
 {
-        return !val.is_unset() && val.is_string() && val.sub().equals(exp);
+        return !val.is_unset() && val.is_string() && val.str().equals(exp);
 }
 
 bool check_string(json::value& val, const std::string& exp)
@@ -78,17 +78,17 @@ static void test_object(wbtester& t)
         t.REQUIRE(check_string(root["name"], "Hal"));
         t.REQUIRE(root["name"].numb() == 0.0);
         t.REQUIRE(check_numb(root["age"], 23));
-        t.REQUIRE(root["age"].sub().empty());
+        t.REQUIRE(root["age"].str().empty());
         t.REQUIRE(check_array(root["aliases"], 3));
         t.REQUIRE(root["aliases"].raw_subbuffer().equals("[\"Bob\",\"Joe\",\"Sam\"]"));
         t.REQUIRE(check_object(root["wife"]));
         t.REQUIRE(root["wife"].raw_subbuffer().equals("{\"name\":\"wifey\"}"));
         t.REQUIRE(check_bool(root["old"], false));
         t.REQUIRE(check_bool(root["male"], true));
-        t.REQUIRE(root["male"].sub().equals("true"));
+        t.REQUIRE(root["male"].str().equals("true"));
         t.REQUIRE(root["male"].numb() == 1.0);
         t.REQUIRE(check_bool(root["female"], false));
-        t.REQUIRE(root["female"].sub().equals("false"));
+        t.REQUIRE(root["female"].str().equals("false"));
         t.REQUIRE(root["female"].numb() == 0.0);
 }
 
@@ -152,7 +152,7 @@ static void test_escaped(wbtester& t)
 
         json::root root(json_text);
         json::value& desc = root["desc"];
-        t.REQUIRE(desc.sub().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
+        t.REQUIRE(desc.str().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
 
         json_array arr;
         arr.add(1);
@@ -164,13 +164,13 @@ static void test_escaped(wbtester& t)
         json::root aroot(json_text);
         std::string dest;
         t.REQUIRE(aroot[0].numb() == 1);
-        t.REQUIRE(aroot[1].sub().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
+        t.REQUIRE(aroot[1].str().equals("bob is \\\"tall\\\"\\\n\\\"thin\\\"\\\n\\\"bald\\\""));
         t.REQUIRE(aroot[1].unescape(dest).equals("bob is \"tall\"\n\"thin\"\n\"bald\""));
-        t.REQUIRE(aroot[2].sub().equals("hello"));
+        t.REQUIRE(aroot[2].str().equals("hello"));
 
 
         json::root broot("[\"this is a\\? regex\"]");
-        t.REQUIRE(broot[0].sub().equals("this is a\\? regex"));
+        t.REQUIRE(broot[0].str().equals("this is a\\? regex"));
         t.REQUIRE(broot[0].unescape(dest).equals("this is a\? regex"));
 }
 

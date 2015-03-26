@@ -25,23 +25,7 @@
 #include "aton.h"
 #include "json.h"
 
-#include <errno.h>
-#include <iostream>
-#include <netdb.h>
-#include <net/if.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-
 #include <map>
-#include <string>
 #include <vector>
 
 
@@ -112,7 +96,7 @@ namespace json
                   @brief Only valid for STRING and BOOL values.
                   @returns The value for STRING values and "true" or "false" for BOOL values.
                  */
-                inline subbuffer sub() const
+                inline subbuffer str() const
                 {
                         if (m_type == STRING) return m_sval;
                         if (m_type == BOOL)
@@ -128,7 +112,7 @@ namespace json
                  */
                 inline bool str(std::string& ao_string) const
                 {
-                        subbuffer l_sub = sub();
+                        subbuffer l_sub = str();
                         ao_string.assign(l_sub.begin(), l_sub.length());
                         return l_sub.is_set();
                 }
