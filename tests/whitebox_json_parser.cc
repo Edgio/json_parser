@@ -37,7 +37,11 @@ bool check_subbuffer(json::value& val, subbuffer exp)
 
 bool check_string(json::value& val, const std::string& exp)
 {
-        return !val.is_unset() && val.is_string() && val.str() == exp;
+        std::string l_string;
+        return (!val.is_unset() &&
+                val.is_string() &&
+                true == val.str(l_string) &&
+                l_string == exp);
 }
 
 bool check_numb(json::value& val, double exp)

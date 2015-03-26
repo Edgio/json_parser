@@ -126,9 +126,11 @@ namespace json
                   @brief  Return a std::string object for STRING and BOOL values
                   @returns The value for STRING values and "true" or "false" for BOOL values.
                  */
-                inline std::string str() const
+                inline bool str(std::string& ao_string) const
                 {
-                        return std::string(sub().begin(), sub().length());
+                        subbuffer l_sub = sub();
+                        ao_string.assign(l_sub.begin(), l_sub.length());
+                        return l_sub.is_set();
                 }
 
                 /**
