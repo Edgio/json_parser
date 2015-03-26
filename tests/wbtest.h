@@ -24,6 +24,7 @@
 
 #include <utility>
 #include <vector>
+#include <stdio.h>
 
 class wbtester
 {
@@ -49,7 +50,7 @@ public:
                         m_name = iter->first;
                         iter->second(*this);
                         if (start_failed != m_failed)
-                                failed_tests.push_back(iter->first); 
+                                failed_tests.push_back(iter->first);
                 }
 
                 if (!m_failed)

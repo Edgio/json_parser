@@ -30,9 +30,18 @@
 #include <string>
 #include <vector>
 
-bool check_string(json::value& val, subbuffer exp)
+bool check_subbuffer(json::value& val, subbuffer exp)
 {
         return !val.is_unset() && val.is_string() && val.str().equals(exp);
+}
+
+bool check_string(json::value& val, const std::string& exp)
+{
+        std::string l_string;
+        return (!val.is_unset() &&
+                val.is_string() &&
+                true == val.str(l_string) &&
+                l_string == exp);
 }
 
 bool check_numb(json::value& val, double exp)
@@ -65,6 +74,7 @@ static void test_object(wbtester& t)
         t.REQUIRE(root["not_there"].is_unset());
         t.REQUIRE(false == root.exists("address"));
         t.REQUIRE(root["address"].is_unset());
+        t.REQUIRE(check_subbuffer(root["name"], "Hal"));
         t.REQUIRE(check_string(root["name"], "Hal"));
         t.REQUIRE(root["name"].numb() == 0.0);
         t.REQUIRE(check_numb(root["age"], 23));
@@ -87,7 +97,7 @@ static void test_object2(wbtester& t)
         const char* json_text = "\
 [\
   {\
-     \"key\"     : \"cache-purge\",	    \
+     \"key\"     : \"cache-purge\",         \
      \"val\"\
 :[\
    {\"uri\":\"abc\"}\
@@ -97,7 +107,7 @@ static void test_object2(wbtester& t)
    {\"uri\":\"123\"}\
 \
 \
-	\
+        \
 ]\
 ,\
  \"expires\":\"9999999999\"\
@@ -114,6 +124,7 @@ static void test_object2(wbtester& t)
 
         t.REQUIRE(val[""].is_unset());
         t.REQUIRE(val["address"].is_unset());
+        t.REQUIRE(check_subbuffer(val["key"], "cache-purge"));
         t.REQUIRE(check_string(val["key"], "cache-purge"));
 
         json::value& subval = val["val"];
@@ -121,9 +132,12 @@ static void test_object2(wbtester& t)
         t.REQUIRE(check_object(subval[0]));
         t.REQUIRE(check_object(subval[1]));
 
+        t.REQUIRE(check_subbuffer(subval[0]["uri"], "abc"));
         t.REQUIRE(check_string(subval[0]["uri"], "abc"));
+        t.REQUIRE(check_subbuffer(subval[1]["uri"], "123"));
         t.REQUIRE(check_string(subval[1]["uri"], "123"));
 
+        t.REQUIRE(check_subbuffer(val["expires"], "9999999999"));
         t.REQUIRE(check_string(val["expires"], "9999999999"));
 }
 

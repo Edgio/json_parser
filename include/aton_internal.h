@@ -24,16 +24,9 @@
 
 
 #include <algorithm>
-#include <ctype.h>
-#include <limits.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <string.h>
 
 #include <limits>
-#include <math.h>
 
 static inline uint8_t get_char_val(char c)
 {
@@ -197,7 +190,7 @@ template<typename NUMB> bool aton_float(NUMB& value, const char* str, size_t len
         double val(lval);
 
         // now handle everything after the dot
-        if (-1 != dot_pos) 
+        if (-1 != dot_pos)
         {
                 for (; i < len; ++i)
                 {
@@ -251,13 +244,13 @@ template<typename NUMB> bool aton_float(NUMB& value, const char* str, size_t len
   then be converted to 12345 and 67890 without the need for temporary buffers
 
   @code
-	const char* str = "123 N 1st St";
-	uint32_t val = 0;
+        const char* str = "123 N 1st St";
+        uint32_t val = 0;
         if (!aton<uint32_t>(val, str, strlen(str)))
         {
                 // error logic
         }
-	// val now contains 123
+        // val now contains 123
   @endcode
  */
 template<typename NUMB> bool aton_internal(NUMB& val, const char* str, size_t len, const char** remainder = NULL, uint64_t base = 10);

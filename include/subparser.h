@@ -23,10 +23,6 @@
 
 #include "subbuffer.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
 #include <vector>
 
 /**
@@ -53,19 +49,19 @@ public:
 
           This is the normal and most performant way of parsing with subparser.
 
-          @param [in] sb	The subbuffer to parse
-          @param [in] delimiter	Char to use as the delimiter.
-          @param [in] skip	How to treat empty fields.
+          @param [in] sb        The subbuffer to parse
+          @param [in] delimiter Char to use as the delimiter.
+          @param [in] skip      How to treat empty fields.
 
           @code
-        	  subbuffer line("1,2,3,4,,5,6,7,8,9,0,");
-        	  // line has two empty fields, between 4 and 5 and after 0
-        	  subparser numbs(line, ',', subparser::SKIP_EMPTY);
-        	  while (!numbs.empty())
-        	  {
-        		  subbuffer n(numbs.next());
-        		  ...
-        	  }
+                  subbuffer line("1,2,3,4,,5,6,7,8,9,0,");
+                  // line has two empty fields, between 4 and 5 and after 0
+                  subparser numbs(line, ',', subparser::SKIP_EMPTY);
+                  while (!numbs.empty())
+                  {
+                          subbuffer n(numbs.next());
+                          ...
+                  }
           @endcode
          */
         subparser(subbuffer sb, char delimiter, skip_empty_t skip) :
@@ -81,19 +77,19 @@ public:
         /**
           @brief Parse using a subbuffer as the delimiter.
 
-          @param [in] sb	The subbuffer to parse
-          @param [in] delimiter	Subbuffer to use as the delimiter.
-          @param [in] skip	How to treat empty fields.
+          @param [in] sb        The subbuffer to parse
+          @param [in] delimiter Subbuffer to use as the delimiter.
+          @param [in] skip      How to treat empty fields.
 
           @code
-        	  subbuffer line("1.-.2.-.3.-.4.-.5");
-        	  // use ".-." as the delimiter
-        	  subparser numbs(line, CONST_SUBBUF(".-."), subparser::SKIP_EMPTY);
-        	  while (!numbs.empty())
-        	  {
-        		  subbuffer n(numbs.next());
-        		  ...
-        	  }
+                  subbuffer line("1.-.2.-.3.-.4.-.5");
+                  // use ".-." as the delimiter
+                  subparser numbs(line, CONST_SUBBUF(".-."), subparser::SKIP_EMPTY);
+                  while (!numbs.empty())
+                  {
+                          subbuffer n(numbs.next());
+                          ...
+                  }
           @endcode
          */
         subparser(subbuffer sb, subbuffer delimiter, skip_empty_t skip) :
@@ -112,20 +108,20 @@ public:
           Provides the flexibility of allowing the delimiter to be any of the chars in the chargrp.
           That flexibility a small performance penalty, so only use it if needed.
 
-          @param [in] sb	The subbuffer to parse
-          @param [in] delimiter	Chargrp to use as the delimiter.
-          @param [in] skip	How to treat empty fields.
+          @param [in] sb        The subbuffer to parse
+          @param [in] delimiter Chargrp to use as the delimiter.
+          @param [in] skip      How to treat empty fields.
 
           @code
-        	  subbuffer line("1.2,3-4(5");
-        	  // mixed delimiters, use chargrp to specifiy all the possible delimiters
-        	  chargrp cg(".,-(");
-        	  subparser numbs(line, cg, subparser::SKIP_EMPTY);
-        	  while (!numbs.empty())
-        	  {
-        		  subbuffer n(numbs.next());
-        		  ...
-        	  }
+                  subbuffer line("1.2,3-4(5");
+                  // mixed delimiters, use chargrp to specifiy all the possible delimiters
+                  chargrp cg(".,-(");
+                  subparser numbs(line, cg, subparser::SKIP_EMPTY);
+                  while (!numbs.empty())
+                  {
+                          subbuffer n(numbs.next());
+                          ...
+                  }
           @endcode
          */
         subparser(subbuffer sb, const chargrp& delimiter, skip_empty_t skip) :
@@ -149,7 +145,7 @@ public:
 
         /**
           @brief Finds and returns the next field in the subbuffer.
-        	 Any empty subbuffer is returned when the subbuffer has been fully parsed.
+                 Any empty subbuffer is returned when the subbuffer has been fully parsed.
           */
         subbuffer next()
         {
@@ -188,11 +184,11 @@ public:
           @param [out] vect The vector to be filled. Caller is reponsible for clearing vect if desired.
 
           @code
-        	  subbuffer line("1,2,3,4,5");
-        	  vector<subbuffer> vals;
-        	  subparser numbs(line, ',', subparser::SKIP_EMPTY);
-        	  numbs.split(vals);
-        	  // vals now contains { "1", "2", "3", "4", "5" }
+                  subbuffer line("1,2,3,4,5");
+                  vector<subbuffer> vals;
+                  subparser numbs(line, ',', subparser::SKIP_EMPTY);
+                  numbs.split(vals);
+                  // vals now contains { "1", "2", "3", "4", "5" }
           @endcode
          */
         size_t split(std::vector<subbuffer>& vect)
@@ -236,13 +232,13 @@ private:
         }
 
 private:
-        subbuffer m_buff;		//!< The buffer to be parsed, shrinks as we parse
+        subbuffer m_buff;               //!< The buffer to be parsed, shrinks as we parse
         char      m_delimiter_char;
         subbuffer m_delimiter_sub;
         const chargrp*  m_delimiter_cg;
         bool      m_empty;
 
-        delimiter_type_t m_type;	//!< Set in the constructor. Based on which type of delimiter was passed in.
+        delimiter_type_t m_type;        //!< Set in the constructor. Based on which type of delimiter was passed in.
         skip_empty_t     m_skip_empty;
 };
 

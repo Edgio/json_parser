@@ -2,7 +2,7 @@
 //: Copyright (C) 2015 Verizon.  All Rights Reserved.
 //:
 //: \file:    json.h
-//: \details: Assists with building basic JSON text. 
+//: \details: Assists with building basic JSON text.
 //: \author:  Donnevan "Scott" Yeager
 //: \date:    06/21/2013
 //:
@@ -25,6 +25,7 @@
 #include "subbuffer.h"
 
 #include <string>
+#include <stdio.h>
 
 /**
  * @file json.h

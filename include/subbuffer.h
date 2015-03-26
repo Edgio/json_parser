@@ -24,14 +24,9 @@
 #include "aton_internal.h"
 #include "chargrp.h"
 
-#include <algorithm>
-#include <ctype.h>
 #include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
-#include <string.h>
-#include <sys/types.h>
+
 
 #define SUBBUF_LEN(x) ((x).begin()), ((x).length())
 
@@ -53,7 +48,7 @@ enum case_sensitivity_t { CASE_INSENSITIVE, CASE_SENSITIVE };
   Use to simplify complicated code.
 
   @note Remember that the source bytes are not copied into the subbuffer object and so
-	the subbuffer is only valid for the lifetime of the original string.
+        the subbuffer is only valid for the lifetime of the original string.
  */
 class subbuffer
 {
@@ -185,7 +180,7 @@ public:
           Does the comparison starting from the end of the strings to the front.
           So if your strings tend to differ near their ends this could save you some cpu cycles.
           @returns true if they match, false if they don't match-
-        	   starting from the last character in the string.
+                   starting from the last character in the string.
          */
         bool requals(const subbuffer& sb, case_sensitivity_t char_case = CASE_SENSITIVE) const
         {
@@ -228,7 +223,7 @@ public:
         /**
           @brief Compares this subbuffer with sb.
           @returns an integer less than, equal to, or greater than zero if this subbuffer
-        	   is found, respectively, to be less than, to match, or be greater than sb.
+                   is found, respectively, to be less than, to match, or be greater than sb.
          */
         inline int compare(const subbuffer& sb) const
         {
@@ -243,7 +238,7 @@ public:
         /**
           @brief Compares this subbuffer with sb using char_case.
           @returns an integer less than, equal to, or greater than zero if this subbuffer
-        	   is found, respectively, to be less than, to match, or be greater than sb.
+                   is found, respectively, to be less than, to match, or be greater than sb.
          */
         inline int compare(const subbuffer& sb, case_sensitivity_t char_case) const
         {
@@ -822,7 +817,7 @@ public:
           @returns A reference to this subbuffer
          */
         template<class BinaryPredicate> inline subbuffer& trim(BinaryPredicate pred) { return ltrim(pred).rtrim(pred); }
-        
+
         /**
           @brief Advances the const char* and reduces the length.
           @returns A reference to this subbuffer.
@@ -936,7 +931,7 @@ struct subbuffer_equals
         }
 };
 
-struct subbuffer_hash 
+struct subbuffer_hash
 {
         inline size_t operator()(const subbuffer& sb) const
         {
