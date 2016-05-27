@@ -679,6 +679,12 @@ namespace json
                                         return false;
                                 }
                         }
+
+                        if (rem.empty())
+                                m_sval = val;
+                        else
+                                m_sval = val.sub(0, rem.begin() - val.begin());
+
                         m_type = NUMBER;
                         val = rem;
                 }
