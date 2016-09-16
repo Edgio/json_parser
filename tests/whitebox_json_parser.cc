@@ -234,6 +234,13 @@ void run_perf_test(uint64_t perf_size)
         fprintf(stderr, "perf_test, perf_size: %lu, parse mic secs: %lu, check mic secs: %lu\n", perf_size, pars_ms, check_ms);
 }
 
+void test_reported_error_1(wbtester& t)
+{
+        subbuffer json_text("{\"path\": \"/foo/bar\", \"cmd\": \"GET\", \"data\": {\"command\": \"insert\", \"payload\": {\"table_name\": \"table1\", \"columns\": [\"id\", \"column1\"], \"thedata\": [[\"1\", \"2\"], [\"2\", \"4\"], [\"3\", \"8\"], [\"4\", \"8\"], [\"5\", \"10\"]]}}}");
+        json::root root(json_text);
+        t.REQUIRE(!root.is_unset());
+}
+
 int main(int argc, char** argv)
 {
         bool do_perf = false;
@@ -258,6 +265,7 @@ int main(int argc, char** argv)
         t.ADD_TEST(test_object);
         t.ADD_TEST(test_object2);
         t.ADD_TEST(test_escaped);
+        t.ADD_TEST(test_reported_error_1);
 
         return t.run();
 }
