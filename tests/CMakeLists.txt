@@ -24,6 +24,8 @@ project ("JSON Parser")
 add_executable(whitebox_json_parser whitebox_json_parser.cc)
 add_executable(whitebox_subbuffer whitebox_subbuffer.cc)
 add_executable(whitebox_aton whitebox_aton.cc)
+add_executable(whitebox_subparser whitebox_subparser.cc)
+add_executable(whitebox_subbuffer_timings whitebox_subbuffer_timings.cc)
 
 include_directories(BEFORE ../include)
 
@@ -37,3 +39,4 @@ enable_testing()
 add_test (whitebox_aton whitebox_aton)
 add_test (whitebox_json_parser whitebox_json_parser)
 add_test (whitebox_subbuffer whitebox_subbuffer)
+add_test (whitebox_subparser whitebox_subparser)

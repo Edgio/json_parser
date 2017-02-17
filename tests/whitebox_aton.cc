@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <float.h>
 
 #include <sys/time.h>
 
@@ -169,13 +170,19 @@ static void test_extensive(wbtester& t)
         t.REQUIRE(test_hex<uint64_t>() == true);
 }
 
+static double s_dbl_min = -50.0;
+static double s_dbl_max = 50.0;
+
 static void test_floating_point(wbtester& t)
 {
         char buff[50];
         char buff2[50];
+        uint64_t failures = 0;
+        uint64_t tries = 0;
 
-        for (double d = -50.0; d < 50.0; d += .00001)
+        for (double d = s_dbl_min; d < s_dbl_max; d += .00001)
         {
+                tries++;
                 ::sprintf(buff, "%0.5f", d);
                 double val = aton<double>(buff);
                 ::sprintf(buff2, "%0.5f", val);
@@ -183,10 +190,11 @@ static void test_floating_point(wbtester& t)
                 if (::strcmp(buff, buff2))
                 {
                         ::printf("%s != %s\n", buff, buff2);
-                        break;
+                        failures++;
                 }
+                if (0 == tries % 10000000) printf("%lu double conversions, current val: %0.5f\n", tries, d);
         }
-
+        ::printf("%lu double conversions, min: %0.5f, max: %0.5f, %lu failures\n", tries, s_dbl_min, s_dbl_max, failures);
         t.REQUIRE(aton<float>(subbuffer()) == 0.0);
         subbuffer remainder;
         t.REQUIRE(aton<float>("99A", &remainder) == 99.0);
@@ -217,6 +225,7 @@ static void test_remainder(wbtester& t)
 static void test_integer_performance(wbtester&)
 {
         std::vector<char*> nums;
+        std::vector<subbuffer> snums;
         nums.reserve(1000000);
 
         for (int i = -1147483640; i < 1147483640; i += 3163)
@@ -224,6 +233,7 @@ static void test_integer_performance(wbtester&)
                 char* buff = new char[12];
                 sprintf(buff, "%d", i);
                 nums.push_back(buff);
+                snums.push_back(nums.back());
         }
 
         uint64_t start, end;
@@ -231,10 +241,11 @@ static void test_integer_performance(wbtester&)
         double diff = 0;
         double each = 0;
 
+        total = 0;
         start = get_microseconds();
         for (size_t i = 0; i < nums.size(); ++i)
         {
-                total += aton<int>(nums[i]);
+                total += aton<int>(snums[i]);
         }
         end = get_microseconds();
         diff = end - start;
@@ -242,6 +253,19 @@ static void test_integer_performance(wbtester&)
 
         fprintf(stdout, "%-20s %zu conversions (result %.1f) took %.3fus/check => %14.3f checks/sec\n",
                 "aton<int>", nums.size(), total, each, 1000000 / each);
+
+        total = 0;
+        start = get_microseconds();
+        for (size_t i = 0; i < nums.size(); ++i)
+        {
+                total += atoi(nums[i]);
+        }
+        end = get_microseconds();
+        diff = end - start;
+        each = diff / nums.size();
+
+        fprintf(stdout, "%-20s %zu conversions (result %.1f) took %.3fus/check => %14.3f checks/sec\n",
+                "atoi", nums.size(), total, each, 1000000 / each);
 
         total = 0;
         start = get_microseconds();
@@ -281,11 +305,13 @@ static void test_integer_performance(wbtester&)
 static void test_double_performance(wbtester&)
 {
         std::vector<char*> nums;
+        std::vector<subbuffer> snums;
         for (double d = -25.00001; d < 25.0; d += 0.00007)
         {
                 char* buff = new char[11];
                 sprintf(buff, "%.5f", d);
                 nums.push_back(buff);
+                snums.push_back(nums.back());
         }
 
         timeval start, end, diff;
@@ -294,7 +320,7 @@ static void test_double_performance(wbtester&)
         gettimeofday(&start, NULL);
         for (size_t i = 0; i < nums.size(); ++i)
         {
-                total += aton<double>(nums[i]);
+                total += aton<double>(snums[i]);
         }
         gettimeofday(&end, NULL);
         timersub(&end, &start, &diff);
@@ -346,12 +372,21 @@ int main(int argc, char** argv)
 {
         wbtester t;
 
+        for (int i = 1; i < argc; i++)
+        {
+                subbuffer arg(argv[i]);
+                subbuffer key(arg.before('='));
+                subbuffer val(arg.after('='));
+                if (key.equals("--dbl-max")) val.aton(s_dbl_max);
+                else if (key.equals("--dbl-min")) val.aton(s_dbl_min);
+        }
+
+        t.ADD_TEST(test_integer_performance);
+        t.ADD_TEST(test_floating_point);
         t.ADD_TEST(test_simple);
         t.ADD_TEST(test_overflow);
         t.ADD_TEST(test_extensive);
-        t.ADD_TEST(test_floating_point);
         t.ADD_TEST(test_remainder);
-        t.ADD_TEST(test_integer_performance);
         t.ADD_TEST(test_double_performance);
 
         return t.run();

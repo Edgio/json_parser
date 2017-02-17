@@ -24,6 +24,7 @@ project("JSON Parser")
 cmake_minimum_required(VERSION 2.6)
 
 # Definitions
+add_definitions(-O2)
 add_definitions(-Wall)
 add_definitions(-Werror)
 add_definitions(-Weffc++)

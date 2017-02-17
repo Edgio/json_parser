@@ -72,7 +72,7 @@ public:
                 m_empty(false),
                 m_type(CHAR_DELIM),
                 m_skip_empty(skip)
-        {}
+        { this->skip(); }
 
         /**
           @brief Parse using a subbuffer as the delimiter.
@@ -100,7 +100,7 @@ public:
                 m_empty(false),
                 m_type(SUBBUF_DELIM),
                 m_skip_empty(skip)
-        {}
+        { this->skip(); }
 
         /**
           @brief Parse using a chargrp as the delimiter.
@@ -132,7 +132,7 @@ public:
                 m_empty(false),
                 m_type(CHARGRP_DELIM),
                 m_skip_empty(skip)
-        {}
+        { this->skip(); }
 
         /**
           @brief Check if there are any remaining fields.

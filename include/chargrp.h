@@ -25,13 +25,17 @@
 #include <stdint.h>
 #include <string.h>
 
-static uint8_t s_BYTE_VALS[] = {1,2,4,8,16,32,64,128};
+//static uint8_t s_BYTE_VALS[] = {1,2,4,8,16,32,64,128};
 
 /**
   @brief Simple, lightweight class for testing the value of a char.
 
   By itself this class is not too usefull but when combined with string manipulation
   methods it comes in handy.
+
+  I've gone back and forth with using a bit array vs a byte array vs a bool array
+  and have not seen large enough gains (yet) from any to favour it for performance.
+  So I'm currently using a bool array for cleanliness.
 
   @code
   chargrp spc_dot_slash(" ./");
@@ -46,12 +50,12 @@ static uint8_t s_BYTE_VALS[] = {1,2,4,8,16,32,64,128};
 class chargrp
 {
 public:
-        chargrp()
+        chargrp() : m_len(0)
         {
                 clear();
         }
 
-        explicit chargrp(const char* szGrp)
+        explicit chargrp(const char* szGrp) : m_len(0)
         {
                 clear();
                 add(szGrp);
@@ -62,7 +66,8 @@ public:
           */
         void clear()
         {
-                memset(m_bits, 0, 32);
+                memset(m_vals, 0, sizeof(bool) * 256);
+                m_len = 0;
         }
 
         /**
@@ -75,16 +80,16 @@ public:
 
                 while (*szGrp)
                 {
-                        uint8_t c(*szGrp);
-                        m_bits[c / 8] = (m_bits[c / 8] | s_BYTE_VALS[c % 8]);
-                        szGrp++;
+                        m_vals[uint8_t(*szGrp)] = true;
+                        ++szGrp;
+                        ++m_len;
                 }
         }
 
         /**
           @brief Adds a single char to the cltn of chars.
           */
-        void add(char val) { m_bits[uint8_t(val) / 8] = m_bits[val / 8] | s_BYTE_VALS[uint8_t(val) % 8]; }
+        void add(char val) { m_vals[uint8_t(val)] = true; ++m_len; }
 
         /**
           @brief Removes the chars in szGrp from the cltn.
@@ -95,29 +100,32 @@ public:
 
                 while (*szGrp)
                 {
-                        uint8_t c(*szGrp);
-                        m_bits[c / 8] = m_bits[c / 8] & ~(s_BYTE_VALS[c % 8]);
-                        szGrp++;
+                        m_vals[uint8_t(*szGrp)] = false; 
+                        ++szGrp;
+                        --m_len;
                 }
         }
 
         /**
           @brief Removes a single char from the cltn.
           */
-        void remove(char val) { m_bits[uint8_t(val) / 8] = m_bits[uint8_t(val) / 8] & ~(s_BYTE_VALS[uint8_t(val) % 8]); }
+        void remove(char val) { m_vals[uint8_t(val)] = false; --m_len; }
 
         /**
           @brief Checks if val is in the cltn.
           */
-        inline bool contains(char val) const { return m_bits[uint8_t(val) / 8] & s_BYTE_VALS[uint8_t(val) % 8]; }
+        inline bool contains(char val) const { return m_vals[uint8_t(val)]; }
 
         /**
           @brief Checks if val is in the cltn. Useful in methods requiring a predicate.
           */
-        inline bool operator()(char val) const { return m_bits[uint8_t(val) / 8] & s_BYTE_VALS[uint8_t(val) % 8]; }
+        inline bool operator()(const char& val) const { return m_vals[uint8_t(val)]; }
+
+        inline uint8_t length() const { return m_len; }
 
 private:
-        uint8_t m_bits[32]; //!< One bit for each of the possible single byte values.
+        bool m_vals[256]; //!< One bool for each of the possible single byte values.
+        uint8_t m_len;  //!< Number of chars in the group
 };
 
 #endif

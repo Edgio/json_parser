@@ -25,6 +25,21 @@
 #include "chargrp.h"
 
 #include <limits.h>
+#include <stdio.h>
+
+#ifndef likely
+#define likely(x)   __builtin_expect((x),1)
+#endif
+
+#ifndef unlikely
+#define unlikely(x) __builtin_expect((x),0)
+#endif
+
+
+#if __cplusplus > 199711L
+#include <regex>
+#endif
+
 #include <string>
 
 
@@ -40,6 +55,54 @@
  */
 enum case_sensitivity_t { CASE_INSENSITIVE, CASE_SENSITIVE };
 
+
+static const char s_SUBBUF_FAST_TOLOWER_table[256] = {
+  0,   1,   2,   3,   4,   5,   6,   7,
+  8,   9,  10,  11,  12,  13,  14,  15,
+ 16,  17,  18,  19,  20,  21,  22,  23,
+ 24,  25,  26,  27,  28,  29,  30,  31,
+ 32,  33,  34,  35,  36,  37,  38,  39,
+ 40,  41,  42,  43,  44,  45,  46,  47,
+ 48,  49,  50,  51,  52,  53,  54,  55,
+ 56,  57,  58,  59,  60,  61,  62,  63,
+ 64,  97,  98,  99, 100, 101, 102, 103,
+104, 105, 106, 107, 108, 109, 110, 111,
+112, 113, 114, 115, 116, 117, 118, 119,
+120, 121, 122,  91,  92,  93,  94,  95,
+ 96,  97,  98,  99, 100, 101, 102, 103,
+104, 105, 106, 107, 108, 109, 110, 111,
+112, 113, 114, 115, 116, 117, 118, 119,
+120, 121, 122, 123, 124, 125, 126, 127,
+-128, -127, -126, -125, -124, -123, -122, -121,
+-120, -119, -118, -117, -116, -115, -114, -113,
+-112, -111, -110, -109, -108, -107, -106, -105,
+-104, -103, -102, -101, -100, -99, -98, -97,
+-96, -95, -94, -93, -92, -91, -90, -89,
+-88, -87, -86, -85, -84, -83, -82, -81,
+-80, -79, -78, -77, -76, -75, -74, -73,
+-72, -71, -70, -69, -68, -67, -66, -65,
+-64, -63, -62, -61, -60, -59, -58, -57,
+-56, -55, -54, -53, -52, -51, -50, -49,
+-48, -47, -46, -45, -44, -43, -42, -41,
+-40, -39, -38, -37, -36, -35, -34, -33,
+-32, -31, -30, -29, -28, -27, -26, -25,
+-24, -23, -22, -21, -20, -19, -18, -17,
+-16, -15, -14, -13, -12, -11, -10,  -9,
+ -8,  -7,  -6,  -5,  -4,  -3,  -2,  -1
+};
+
+#define SUBBUF_LOWERCASE_NOT_EQUAL(c, d)   (unsigned char)(c | 0x20) != (unsigned char)(d | 0x20)
+#define TOLOWER(c)   s_SUBBUF_FAST_TOLOWER_table[(unsigned char)(c)]
+
+struct caseless_compare
+{
+        inline bool operator() (const char a, const char b) const { return TOLOWER(a) == TOLOWER(b); }
+};
+
+struct caseless_less_than
+{
+        inline bool operator() (const char a, const char b) const { return TOLOWER(a) < TOLOWER(b); }
+};
 /**
   @brief Non-owned reference to a (possibly not null-terminated) substring
 
@@ -144,25 +207,23 @@ public:
 
         /**
           @brief Compares this subbuffer with the first len chars in ptr using char_case.
-          @param char_case Defaults to CASE_SENSITIVE.
           @returns true if they match, false if they don't match.
          */
-        inline bool equals(const char* ptr, size_t len, case_sensitivity_t char_case = CASE_SENSITIVE)
+        inline bool equals(const char* ptr, size_t len) const
         {
-                if (CASE_SENSITIVE == char_case)
-                        return m_len == len && std::equal(m_p, m_p + m_len, ptr);
-                return m_len == len && 0 == ::strncasecmp(m_p, ptr, m_len);
+                return m_len == len && std::equal(m_p, m_p + m_len, ptr);
         }
 
         /**
-          @brief Compares this subbuffer with sb using char_case.
+          @brief Compares this subbuffer with the first len chars in ptr using char_case.
+          @param char_case CASE_SENSITIVE or CASE_INSENSITIVE.
           @returns true if they match, false if they don't match.
          */
-        inline bool equals(const subbuffer& sb, case_sensitivity_t char_case) const
+        inline bool equals(const char* ptr, size_t len, case_sensitivity_t char_case) const
         {
-                if (CASE_SENSITIVE == char_case)
-                        return m_len == sb.m_len && std::equal(m_p, m_p + m_len, sb.m_p);
-                return m_len == sb.m_len && 0 == ::strncasecmp(m_p, sb.m_p, m_len);
+                if (CASE_SENSITIVE == char_case) return this->equals(ptr, len);
+                static caseless_compare cp;
+                return m_len == len && std::equal(m_p, m_p + m_len, ptr, cp);
         }
 
         /**
@@ -174,6 +235,36 @@ public:
                 return m_len == sb.m_len && std::equal(m_p, m_p + m_len, sb.m_p);
         }
 
+        /**
+          @brief Compares this subbuffer with sb using char_case.
+          @returns true if they match, false if they don't match.
+         */
+        inline bool equals(const subbuffer& sb, case_sensitivity_t char_case) const
+        {
+                if (CASE_SENSITIVE == char_case) return this->equals(sb);
+                static caseless_compare cp;
+                return m_len == sb.m_len && std::equal(m_p, m_p + m_len, sb.m_p, cp);
+        }
+
+        inline bool equals_caseless(const subbuffer& sb) const
+        {
+                static caseless_compare cp;
+                return m_len == sb.m_len && std::equal(m_p, m_p + m_len, sb.m_p, cp);
+        }
+
+#if __cplusplus > 199711L
+
+        inline bool match(const std::regex& re) const
+        {
+                return m_len && std::regex_match(m_p, m_p + m_len, re);
+        }
+
+        inline bool search(const std::regex& re) const
+        {
+                return m_len && std::regex_search(m_p, m_p + m_len, re);
+        }
+
+#endif
 
         /**
           @brief Compares this subbuffer with sb using char_case.
@@ -202,7 +293,7 @@ public:
                         for (const char* start = m_p + m_len - 1; start >= m_p; start--, sb_p--)
                         {
                                 // comparison order critical here
-                                if (tolower(*start) != tolower(*sb_p))
+                                if (TOLOWER(*start) != TOLOWER(*sb_p))
                                         return false;
                         }
                 }
@@ -217,7 +308,7 @@ public:
         {
                 if (CASE_SENSITIVE == char_case) return 1 == m_len && c == m_p[0];
 
-                return 1 == m_len && tolower(c) == tolower(m_p[0]);
+                return 1 == m_len && TOLOWER(c) == TOLOWER(m_p[0]);
         }
 
         /**
@@ -225,10 +316,13 @@ public:
           @returns an integer less than, equal to, or greater than zero if this subbuffer
                    is found, respectively, to be less than, to match, or be greater than sb.
          */
-        inline int compare(const subbuffer& sb) const
+        inline int compare(const subbuffer& sb, bool compare_length_first = false) const
         {
                 if (!m_len) return (!sb.m_len) ?  0 : -1;
                 if (!sb.m_len) return 1;
+                
+                if (compare_length_first && m_len != sb.m_len)
+                        return m_len < sb.m_len ? -1 : 1; 
 
                 if (*m_p != *sb.m_p) return *m_p - *sb.m_p;
                 int ret = ::strncmp(m_p, sb.m_p, std::min(m_len, sb.m_len));
@@ -240,16 +334,25 @@ public:
           @returns an integer less than, equal to, or greater than zero if this subbuffer
                    is found, respectively, to be less than, to match, or be greater than sb.
          */
-        inline int compare(const subbuffer& sb, case_sensitivity_t char_case) const
+        inline int compare(const subbuffer& sb, case_sensitivity_t char_case, bool compare_length_first = false) const
+        {
+                if (likely(CASE_INSENSITIVE == char_case))
+                        return compare_caseless(sb, compare_length_first);
+                else return this->compare(sb, compare_length_first);
+        }
+
+        inline int compare_caseless(const subbuffer& sb, bool compare_length_first = false) const
         {
                 if (!m_len) return (!sb.m_len) ?  0 : -1;
                 if (!sb.m_len) return 1;
 
-                if (CASE_SENSITIVE == char_case)
-                {
-                        int ret = ::strncmp(m_p, sb.m_p, std::min(m_len, sb.m_len));
-                        return (ret ? ret : m_len < sb.m_len ? -1 : m_len > sb.m_len ? 1 : 0);
-                }
+                if (compare_length_first && m_len != sb.m_len)
+                        return m_len < sb.m_len ? -1 : 1;
+
+                const char a = TOLOWER(*m_p);
+                const char b = TOLOWER(*sb.m_p);
+                if (a != b) return (a < b) ? -1 : 1;
+
                 int ret = ::strncasecmp(m_p, sb.m_p, std::min(m_len, sb.m_len));
                 return (ret ? ret : m_len < sb.m_len ? -1 : m_len > sb.m_len ? 1 : 0);
         }
@@ -260,7 +363,7 @@ public:
          */
         inline bool starts_with(const subbuffer& sb) const
         {
-                return m_len >= sb.m_len && 0 == ::strncmp(m_p, sb.m_p, sb.m_len);
+                return m_len >= sb.m_len && std::equal(m_p, m_p + sb.m_len, sb.m_p);
         }
 
         /**
@@ -270,7 +373,7 @@ public:
         inline bool starts_with(const subbuffer& sb, case_sensitivity_t char_case) const
         {
                 if (CASE_SENSITIVE == char_case)
-                        return m_len >= sb.m_len && 0 == ::strncmp(m_p, sb.m_p, sb.m_len);
+                        return m_len >= sb.m_len && std::equal(m_p, m_p + sb.m_len, sb.m_p);
                 return m_len >= sb.m_len && 0 == ::strncasecmp(m_p, sb.m_p, sb.m_len);
         }
 
@@ -337,7 +440,8 @@ public:
                                 tab[i - CHAR_MIN] = toupper((char) i);
 
                 }
-                char tab[CHAR_MAX - CHAR_MIN];
+                char upper(char c) const { return tab[9 - CHAR_MIN]; }
+                char tab[CHAR_MAX - CHAR_MIN + 1];
         };
 
         /**
@@ -384,25 +488,9 @@ public:
                         return (p == m_p + m_len) ? npos : (const char*)p - m_p;
                 }
 
-                // Decided to leave the following as custom code rather than call std::search with fobj
-                // During testing the std::search was bouncing between 38 and 52 nanoseconds.
-                // For the same input the following code consistently got 32 nanseconds.
-
-                static upper_chars upchars;
-                static caseless_equal_to fobj(upchars.tab);
-
-                const char* str = sb.m_p;
-                for (size_t i = pos; i <= m_len - sb.m_len; ++i)
-                {
-                        if (fobj(m_p[i], *str))
-                        {
-                                size_t j = 1;
-                                for (; j < sb.m_len; ++j)
-                                        if (!fobj(m_p[i + j], str[j])) break;
-                                if (j >= sb.m_len) return i;
-                        }
-                }
-                return npos;
+                static caseless_compare cp;
+                const char* p = std::search(m_p + pos, m_p + m_len, sb.m_p, sb.m_p + sb.m_len, cp);
+                return (p == m_p + m_len) ? npos : (const char*)p - m_p;
         }
 
 
@@ -480,11 +568,13 @@ public:
          */
         size_t find(const chargrp& cg, size_t pos = 0) const
         {
-                if (!m_len) return npos;
-
-                for (size_t s = pos; s < m_len; ++s)
-                        if (cg.contains(m_p[s])) return s;
+                if (!m_len || pos >= m_len) return npos;
+                for (size_t i = 0; i < m_len; ++i)
+                        if (cg(m_p[i])) return i;
                 return npos;
+
+                //const char* pr = std::find_if(m_p + pos, m_p + m_len, cg);
+                //return pr == m_p + m_len ? npos : pr - m_p;
         }
 
         /**
@@ -894,7 +984,7 @@ public:
                 else
                 {
                         for (size_t i = 0; i < m_len; ++i)
-                                res = (res * seed) + tolower(buff[i]);
+                                res = (res * seed) + TOLOWER(buff[i]);
                 }
                 res &= 0x7fffffffffffffffUL;
                 return res;
@@ -902,14 +992,7 @@ public:
 
         inline bool operator< (const subbuffer& sb) const
         {
-                if (!m_len) return sb.m_len ?  true : false;
-                if (!sb.m_len) return false;
-
-                if (*m_p != *sb.m_p) return *m_p < *sb.m_p;
-
-                int ret = ::strncmp(m_p, sb.m_p, std::min(m_len, sb.m_len));
-                if (ret) return (ret < 0);
-                return (m_len < sb.m_len) ? true : false;
+                return std::lexicographical_compare(m_p, m_p + m_len, sb.m_p, sb.m_p + sb.m_len);
         }
 
         inline bool operator== (const subbuffer& val) const { return equals(val); }

@@ -22,6 +22,7 @@
 #include "subbuffer.h"
 #include "wbtest.h"
 
+#include <map>
 #include <string>
 
 static void test_empty(wbtester& t)
@@ -82,6 +83,23 @@ static void test_equals(wbtester& t)
         t.REQUIRE(c1.equals('A', CASE_INSENSITIVE));
         t.REQUIRE(!c1.equals('b'));
         t.REQUIRE(!c1.equals('B', CASE_INSENSITIVE));
+
+        for (int i = 0; i < 26; i++)
+        {
+                char buff1[10];
+                char buff2[10];
+                sprintf(buff1, "%c", 'a' + i);
+                sprintf(buff2, "%c", 'A' + i);
+                subbuffer c1(buff1);
+                subbuffer c2(buff2);
+                t.REQUIRE(c1.equals(c2, CASE_INSENSITIVE));
+                t.REQUIRE(!c1.equals(c2));
+        }
+        const char* b1 = "_+1234567890";
+        const char* b2 = " _+1234567890";
+        subbuffer s1(b1, 1);
+        subbuffer s2(b2 + 1, 1);
+        t.REQUIRE(s1.equals(s2));
 }
 
 static void test_requals(wbtester& t)

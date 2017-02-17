@@ -22,15 +22,59 @@
 #ifndef ATON_INTERNAL_H
 #define ATON_INTERNAL_H
 
+#include <stdio.h>
 
 #include <algorithm>
 #include <stdint.h>
+#include <limits.h>
 
 #include <limits>
 
+#ifndef likely
+#define likely(x)   __builtin_expect((x),1)
+#endif
+
+#ifndef unlikely
+#define unlikely(x) __builtin_expect((x),0)
+#endif
+static const uint8_t s_aton_conversion_table[256] = {
+  UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,      // 0
+  UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,      // 8
+  UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,      // 16
+  UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,      // 24
+  UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,      // 32
+  UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,   UCHAR_MAX,      // 40
+ 0,  1,  2,  3,  4,  5,  6,  7, 8, 9,                                                                        // 48
+ UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,                                      // 58
+ UCHAR_MAX,                                                                                                  // 64
+// A,   B,   C,  D,  E,  F,  G,  H,  I,  J,  K,  L,  M,  N,  O,  P,  Q,  R,  S,  T,  U,  V,  W,  X,  Y,  Z  
+  10,  11,  12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,  // 65
+  UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,  UCHAR_MAX,                                                 // 91
+ UCHAR_MAX,                                                                                                  // 96
+// a,   b,   c,  d,  e,  f,  g,  h,  i,  j,  k,  l,  m,  n,  o,  p,  q,  r,  s,  t,  u,  v,  w,  x,  y,  z  
+  10,  11,  12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,  // 97
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                                                      // 123
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 128
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 136
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 144
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 152
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 160
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 168
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 176
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 184
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 192
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 200
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 208
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 216
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 224
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 232
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX,                     // 240
+ UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX                      // 248
+};
+
 static inline uint8_t get_char_val(char c)
 {
-        if (c >= '0' && c <= '9')
+        if (likely(c >= '0' && c <= '9'))
                 return c - '0';
         if (c >= 'A' && c <= 'Z')
                 return 10 + (c - 'A');
@@ -41,20 +85,20 @@ static inline uint8_t get_char_val(char c)
 
 template<typename NUMB> bool aton_unsigned(NUMB& value, const char* str, size_t len, const char** remainder = NULL, uint64_t base = 10)
 {
-        if (!str || !len)
+        if (unlikely(!str || !len))
         {
                 value = 0;
                 return false;
         }
         if (remainder) *remainder = NULL;
         uint64_t val = 0;
-        if (*str == '-')
+        if (unlikely(*str == '-'))
         {
                 if (remainder) *remainder = "ATON_UNDERFLOW";
                 value = 0;
                 return false;
         }
-        if (*str == '+')
+        if (unlikely(*str == '+'))
         {
                 ++str;
                 --len;
@@ -62,13 +106,13 @@ template<typename NUMB> bool aton_unsigned(NUMB& value, const char* str, size_t 
         size_t i = 0;
         for (; i < len; ++i)
         {
-                uint8_t cv = get_char_val(str[i]);
-                if (cv >= base)
+                uint8_t cv = s_aton_conversion_table[uint8_t(str[i])];
+                if (unlikely(cv >= base))
                 {
                         if (remainder) *remainder = str + i;
                         break;
                 }
-                if (i > 10 && i == (size_t)std::numeric_limits<NUMB>::digits10)
+                if (unlikely(i > 10 && i == (size_t)std::numeric_limits<NUMB>::digits10))
                 {
                         uint64_t mx = uint64_t(std::numeric_limits<NUMB>::max());
                         if (val > mx / 10 ||
@@ -79,11 +123,11 @@ template<typename NUMB> bool aton_unsigned(NUMB& value, const char* str, size_t 
                                 return false;
                         }
                 }
-                if (i != 0) val *= base;
+                if (likely(i != 0)) val *= base;
                 val += cv;
         }
-        if (i > (size_t)std::numeric_limits<NUMB>::digits10 + 1 ||
-            val > uint64_t(std::numeric_limits<NUMB>::max()))
+        if (unlikely(i > (size_t)std::numeric_limits<NUMB>::digits10 + 1 ||
+            (i > (size_t)std::numeric_limits<NUMB>::digits10 && val > uint64_t(std::numeric_limits<NUMB>::max()))))
         {
                 if (remainder) *remainder = "ATON_OVERFLOW";
                 value = std::numeric_limits<NUMB>::max();
@@ -95,7 +139,7 @@ template<typename NUMB> bool aton_unsigned(NUMB& value, const char* str, size_t 
 
 template<typename NUMB> bool aton_signed(NUMB& value, const char* str, size_t len, const char** remainder = NULL, uint64_t base = 10)
 {
-        if (!str || !len)
+        if (unlikely(!str || !len))
         {
                 value = 0;
                 return false;
@@ -112,26 +156,26 @@ template<typename NUMB> bool aton_signed(NUMB& value, const char* str, size_t le
         size_t i = 0;
         for (; i < len; ++i)
         {
-                uint8_t cv = get_char_val(str[i]);
-                if (cv >= base)
+                uint8_t cv = s_aton_conversion_table[uint8_t(str[i])];
+                if (unlikely(cv >= base))
                 {
                         if (remainder) *remainder = str + i;
                         break;
                 }
-                if (i != 0) val *= base;
+                if (likely(i != 0)) val *= base;
                 val += cv;
         }
 
-        if (!negative && (i > (size_t)std::numeric_limits<NUMB>::digits10 + 1 ||
-                          val > uint64_t(std::numeric_limits<NUMB>::max())))
+        if (likely(!negative))
         {
-                if (remainder) *remainder = "ATON_OVERFLOW";
-                value = NUMB(std::numeric_limits<NUMB>::max());
-                return false;
-        }
+                if (unlikely(i > (size_t)std::numeric_limits<NUMB>::digits10 + 1 ||
+                             (i > (size_t)std::numeric_limits<NUMB>::digits10 && val > uint64_t(std::numeric_limits<NUMB>::max()))))
+                {
+                        if (remainder) *remainder = "ATON_OVERFLOW";
+                        value = NUMB(std::numeric_limits<NUMB>::max());
+                        return false;
+                }
 
-        if (!negative)
-        {
                 value = NUMB(val);
                 return true;
         }
@@ -151,7 +195,7 @@ template<typename NUMB> bool aton_signed(NUMB& value, const char* str, size_t le
 
 template<typename NUMB> bool aton_float(NUMB& value, const char* str, size_t len, const char** remainder = NULL)
 {
-        if (!str || !len)
+        if (unlikely(!str || !len))
         {
                 value = 0.0;
                 return false;
@@ -177,8 +221,9 @@ template<typename NUMB> bool aton_float(NUMB& value, const char* str, size_t len
                         ++i;
                         break;
                 }
-                uint8_t cv = get_char_val(c);
-                if (cv >= 10)
+                uint8_t cv = s_aton_conversion_table[uint8_t(c)];
+                //uint8_t cv = get_char_val(c);
+                if (unlikely(cv >= 10))
                 {
                         if (remainder) *remainder = str + i;
                         break;
@@ -195,18 +240,17 @@ template<typename NUMB> bool aton_float(NUMB& value, const char* str, size_t len
                 for (; i < len; ++i)
                 {
                         char c = str[i];
-                        uint8_t cv = get_char_val(c);
-                        if (cv >= 10)
+                        uint8_t cv = s_aton_conversion_table[uint8_t(c)];
+                        //uint8_t cv = get_char_val(c);
+                        if (unlikely(cv >= 10))
                         {
                                 if (remainder) *remainder = str + i;
                                 break;
                         }
-                        if (i - dot_pos > 1) rval *= 10;
+                        if (i - dot_pos > 1) rval *= 10.0;
                         rval += cv;
                         rdiv *= 10;
                 }
-                // ".01" -> divide by 100
-                //val += double(rval) / pow(double(10.0), double(flen - dot_pos - 1));
                 val += double(rval) / rdiv;
         }
 
