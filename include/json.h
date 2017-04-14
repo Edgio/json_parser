@@ -106,6 +106,21 @@ public:
                 char m_last;
         };
 
+        template<typename ENCODER>
+        json_object& add_encoded(subbuffer key, subbuffer val, ENCODER encode, bool quote_it = true)
+        {
+                add_key(key);
+                if (quote_it || val.empty())
+                {
+                        m_buff += '\"';
+                        encode(m_buff, val);
+                        m_buff += '\"';
+                }
+                else
+                        encode(m_buff, val);
+                m_buff += ',';
+                return *this;
+        }
 
         json_object& add(subbuffer key, subbuffer val, bool quote_it = true)
         {
@@ -134,7 +149,8 @@ public:
         {
                 add_key(key);
                 char buff[50];
-                size_t len = sprintf(buff, "%ld", val);
+                size_t len = snprintf(buff, sizeof(buff), "%ld", val);
+                buff[sizeof(buff)-1] = '\0';
                 m_buff.append(buff, len);
                 m_buff += ',';
                 return *this;
@@ -144,7 +160,8 @@ public:
         {
                 add_key(key);
                 char buff[50];
-                size_t len = sprintf(buff, "%lu", val);
+                size_t len = snprintf(buff, sizeof(buff), "%lu", val);
+                buff[sizeof(buff)-1] = '\0';
                 m_buff.append(buff, len);
                 m_buff += ',';
                 return *this;
@@ -157,8 +174,9 @@ public:
         json_object& add(subbuffer key, double val, int num_desc = 2)
         {
                 add_key(key);
-                char buff[50];
-                size_t len = sprintf(buff, "%.*f", num_desc, val);
+                char buff[512];
+                size_t len = snprintf(buff, sizeof(buff), "%.*f", num_desc, val);
+                buff[sizeof(buff)-1] = '\0';
                 m_buff.append(buff, len);
                 m_buff += ',';
                 return *this;
@@ -258,7 +276,8 @@ public:
         json_array& add(int64_t val)
         {
                 char buff[50];
-                size_t len = sprintf(buff, "%ld", val);
+                size_t len = snprintf(buff, sizeof(buff), "%ld", val);
+                buff[sizeof(buff)-1] = '\0';
                 m_buff.append(buff, len);
                 m_buff += ',';
                 return *this;
@@ -267,7 +286,8 @@ public:
         json_array& add(uint64_t val)
         {
                 char buff[50];
-                size_t len = sprintf(buff, "%lu", val);
+                size_t len = snprintf(buff, sizeof(buff), "%lu", val);
+                buff[sizeof(buff)-1] = '\0';
                 m_buff.append(buff, len);
                 m_buff += ',';
                 return *this;
@@ -279,8 +299,9 @@ public:
          */
         json_array& add(double val, int num_desc = 2)
         {
-                char buff[50];
-                size_t len = sprintf(buff, "%.*f", num_desc, val);
+                char buff[512];
+                size_t len = snprintf(buff, sizeof(buff), "%.*f", num_desc, val);
+                buff[sizeof(buff)-1] = '\0';
                 m_buff.append(buff, len);
                 m_buff += ',';
                 return *this;
