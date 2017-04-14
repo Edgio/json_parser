@@ -48,14 +48,9 @@ namespace preds
 
 uint64_t get_ns()
 {
-        struct timespec tps;
-        clock_gettime(CLOCK_MONOTONIC, &tps);
-        return static_cast <uint64_t>((static_cast <uint64_t>(tps.tv_sec) * 1000000000) + tps.tv_nsec);
-/*
         timeval tv;
         ::gettimeofday(&tv, 0);
         return static_cast <uint64_t>((static_cast <uint64_t>(tv.tv_sec) * 1000000)  + tv.tv_usec) * 1000;
-*/
 }
 
 const char* buff = "Mary ate her lamb as stew with a biscuit";
