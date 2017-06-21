@@ -431,18 +431,6 @@ public:
           Tried combining this class and caseless_equal_to to pretty it up
           but that added 4 nanoseconds.
          */
-        class upper_chars
-        {
-        public:
-                upper_chars()
-                {
-                        for (int i = CHAR_MIN; i <= CHAR_MAX; ++i)
-                                tab[i - CHAR_MIN] = toupper((char) i);
-
-                }
-                char upper(char c) const { return tab[9 - CHAR_MIN]; }
-                char tab[CHAR_MAX - CHAR_MIN + 1];
-        };
 
         /**
           @brief A binary functor object used for passing to std::search
@@ -526,8 +514,7 @@ public:
                         return (const char*)p - m_p;
                 }
 
-                static upper_chars upchars;
-                static caseless_equal_to fobj(upchars.tab);
+                caseless_compare fobj;
                 for (size_t i = pos; i < m_len; ++i)
                 {
                         if (fobj(m_p[i], val)) return i;
@@ -606,8 +593,7 @@ public:
                         return npos;
                 }
 
-                static upper_chars upchars;
-                static caseless_equal_to fobj(upchars.tab);
+                caseless_compare fobj;
                 for (size_t i = pos; i <= pos; --i)
                         if (fobj(m_p[i], val)) return i;
                 return npos;
