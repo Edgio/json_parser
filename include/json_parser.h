@@ -59,6 +59,7 @@ namespace json
         static const chargrp brackets(" {}\n\t\r\f\v");
         static const chargrp spacecolon(" :\n\t\r\f\v");
         static const chargrp spacecomma(" ,\n\t\r\f\v");
+        static const chargrp spacecommacolon(" ,:\n\t\r\f\v");
         static const chargrp space(" \n\t\r\f\v");
         class root;
         class object;
@@ -304,14 +305,26 @@ namespace json
                         {
                                 if (!val.starts_with('"'))
                                 {
-                                        JSON_WARNING("object::parse, does not start with \", val: '%.*s', prev: '%.*s'\n",
+                                        JSON_WARNING("object::parse, invalid JSON, does not start with \", val: '%.*s', prev: '%.*s'\n",
                                                      SUBBUF_FORMAT(val.sub(0, 100)),
                                                      SUBBUF_FORMAT(subbuffer(val.begin() - 100, 100)));
                                         return false;
                                 }
                                 val.advance(1);
                                 subbuffer key = val.before('"');
+                                if (key.empty())
+                                {
+                                        JSON_WARNING("object::parse, invalid JSON, key is empty, '%.*s'\n", SUBBUF_FORMAT(m_sval));
+                                        return false;
+                                }
+
                                 val.advance(key.length() + 1);
+                                val.ltrim(space);
+                                if (!val.starts_with(':'))
+                                {
+                                        JSON_WARNING("object::parse, invalid JSON, key:value not separated by colon, '%.*s'\n", SUBBUF_FORMAT(m_sval)); 
+                                        return false;
+                                }
                                 val.ltrim(spacecolon);
                                 // next char should be " or numeric or { or [ or null
                                 if (val.at(0) == ',')
@@ -326,6 +339,13 @@ namespace json
                                         return false;
                                 }
                                 m_vals[key] = v;
+                                val.ltrim(space);
+                                if (!val.starts_with(',') && !val.starts_with('}'))
+                                {
+                                        JSON_WARNING("object::parse, invalid JSON, missing comma (,) or right brace (}), val: '%.*s'\n",
+                                                     SUBBUF_FORMAT(m_sval));
+                                        return false;
+                                }
                                 val.ltrim(spacecomma);
                         }
                         if (val.starts_with('}')) val.advance(1);
@@ -587,8 +607,8 @@ namespace json
 
         bool value::parse(subbuffer& val)
         {
-                val.ltrim(spacecolon);
-                val.ltrim(spacecomma);
+                //val.ltrim(spacecolon);
+                val.ltrim(spacecommacolon);
                 m_type = UNSET;
                 if (val.starts_with('"'))
                 {
@@ -717,18 +737,25 @@ namespace json
         {
         public:
                 inline root()
-                        : value()
+                        : value(), m_is_valid(false)
                 {}
                 inline root(subbuffer val)
-                        : value()
+                        : value(), m_is_valid(false)
                 {
-                        this->parse(val);
+                        m_is_valid = this->parse(val);
                 }
 
                 inline ~root()
                 {
                         this->clear();
                 }
+
+                inline bool is_valid() const
+                {
+                        return m_is_valid;
+                }
+        private:
+                bool m_is_valid;
         };
 };
 
