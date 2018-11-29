@@ -241,6 +241,21 @@ void test_reported_error_1(wbtester& t)
         t.REQUIRE(!root.is_unset());
 }
 
+void test_bad_json(wbtester& t, const subbuffer& json_text)
+{
+        json::root root(json_text);
+        t.REQUIRE(root.is_unset());
+        t.REQUIRE(!root.is_valid());
+}
+
+void test_invalid_json(wbtester& t)
+{
+        test_bad_json(t, "{\"\"{}\"\"{");   // missing colon and other stuff
+        test_bad_json(t, "{\"key\":{}{");   // missing final }
+        test_bad_json(t, "{\"key\"{}\"\"}"); // missing colon and comma
+        test_bad_json(t, "{\"key\":{}\"\"}"); // missing comma
+}
+
 int main(int argc, char** argv)
 {
         bool do_perf = false;
@@ -266,6 +281,7 @@ int main(int argc, char** argv)
         t.ADD_TEST(test_object2);
         t.ADD_TEST(test_escaped);
         t.ADD_TEST(test_reported_error_1);
+        t.ADD_TEST(test_invalid_json);
 
         return t.run();
 }
