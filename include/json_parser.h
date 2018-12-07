@@ -44,6 +44,17 @@
 #define JSON_ERROR(fmt, x...) fprintf(stderr, "ERROR %s:%d: " fmt "\n", __FILE__, __LINE__, ## x)
 #endif
 
+// every call to parse could end up recursing into another level of parsing
+// if you recurse into parse enough times you'll overrun the stack.
+// for easy math, assume that each value/object/array takes a minimum of two calls to parse
+// one for the value and one for the real type (array/object)
+// setting this at 500, means that there will be 500 calls to parse stacked on the stack
+// or around 250 levels of nesting in the json.
+// Feel free to bump it up higher but at some point you'll need to increase your stack size.
+
+#ifndef JSON_MAX_PARSE_RECURSION
+#define JSON_MAX_PARSE_RECURSION 500
+#endif
 
 /**
   @brief A set of classes for parsing JSON data.
@@ -91,7 +102,7 @@ namespace json
                   @brief Helper method for converting portions of the parsed JSON back into JSON text.
                  */
                 template<typename BUFF> void to_json(BUFF& json_text) const;
-                inline bool parse(subbuffer& val);
+                inline bool parse(subbuffer& val, int32_t level);
 
                 /**
                   @brief Only valid for STRING and BOOL values.
@@ -289,13 +300,20 @@ namespace json
                         }
                 }
 
-                inline bool parse(subbuffer& val)
+                inline bool parse(subbuffer& val, int32_t level)
                 {
                         if (!val.starts_with('{'))
                         {
                                 JSON_WARNING("object::parse, does not start with {\n");
                                 return false;
                         }
+
+                        if (JSON_MAX_PARSE_RECURSION < ++level)
+                        {
+                                JSON_ERROR("object::parse, too many levels of recursion (%d)\n", level);
+                                return false;
+                        }
+
                         m_sval = val;
 
                         // "key", val, "key", "val"......
@@ -333,7 +351,7 @@ namespace json
                                         continue;
                                 }
                                 value v;
-                                if (!v.parse(val))
+                                if (!v.parse(val, level))
                                 {
                                         JSON_WARNING("object::parse, v failed to parse '%.*s'\n", SUBBUF_FORMAT(val.sub(0, 100)));
                                         return false;
@@ -398,16 +416,28 @@ namespace json
                         }
                 }
 
-                inline bool parse(subbuffer& val)
+                inline bool parse(subbuffer& val, int32_t level)
                 {
+                        if (!val.starts_with('['))
+                        {
+                                JSON_ERROR("array::parse, does not start with '['\n");
+                                return false;
+                        }
+
+                        if (JSON_MAX_PARSE_RECURSION < ++level)
+                        {
+                                JSON_ERROR("object::parse, too many levels of recursion (%d)\n", level);
+                                return false;
+                        }
+
                         m_sval = val;
-                        if (!val.starts_with('[')) return false;
+
                         val.advance(1).ltrim(space);
 
                         while (!val.empty() && !val.starts_with(']'))
                         {
                                 value v;
-                                if (!v.parse(val)) return false;
+                                if (!v.parse(val, level)) return false;
                                 m_vals.push_back(v);
                                 if (m_vals.size() > 10000000)
                                 {
@@ -605,8 +635,14 @@ namespace json
                 }
         }
 
-        bool value::parse(subbuffer& val)
+        bool value::parse(subbuffer& val, int32_t level)
         {
+                if (JSON_MAX_PARSE_RECURSION < ++level)
+                {
+                        JSON_ERROR("value::parse, too many levels of recursion (%d)\n", level);
+                        return false;
+                }
+
                 //val.ltrim(spacecolon);
                 val.ltrim(spacecommacolon);
                 m_type = UNSET;
@@ -645,7 +681,7 @@ namespace json
                 else if (val.starts_with('['))
                 {
                         m_val.aval = new array();
-                        if (!m_val.aval->parse(val))
+                        if (!m_val.aval->parse(val, level))
                         {
                                 m_val.aval->clear();
                                 delete m_val.aval;
@@ -657,7 +693,7 @@ namespace json
                 else if (val.starts_with('{'))
                 {
                         m_val.oval = new object;
-                        if (!m_val.oval->parse(val))
+                        if (!m_val.oval->parse(val, level))
                         {
                                 m_val.oval->clear();
                                 delete m_val.oval;
@@ -742,7 +778,8 @@ namespace json
                 inline root(subbuffer val)
                         : value(), m_is_valid(false)
                 {
-                        m_is_valid = this->parse(val);
+                        int32_t level = 0;
+                        m_is_valid = this->parse(val, level);
                 }
 
                 inline ~root()
