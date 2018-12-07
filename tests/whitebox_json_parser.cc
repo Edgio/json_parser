@@ -21,6 +21,9 @@
 
 // define JSON_TRACE to do nothing, leave warnings/errors in place
 #define JSON_TRACE(fmt, x...) do { } while(0)
+// lower max recursion for easier testing.
+// there are normally 2 recursions per level of nesting
+#define JSON_MAX_PARSE_RECURSION 40
 
 #include "subbuffer.h"
 #include "json_parser.h"
@@ -256,6 +259,30 @@ void test_invalid_json(wbtester& t)
         test_bad_json(t, "{\"key\":{}\"\"}"); // missing comma
 }
 
+void build_deep_array(std::string& buff, uint32_t levels)
+{
+        for (uint32_t i = 0; i < levels; i++)
+                buff.push_back('[');
+        buff.push_back('1');
+        for (uint32_t i = 0; i < levels; i++)
+                buff.push_back(']');
+}
+
+void test_recursive_json(wbtester& t)
+{
+        std::string buff;
+
+        build_deep_array(buff, 19);
+        fprintf(stderr, "buff: %s\n", buff.c_str());
+        json::root root(buff);
+        t.REQUIRE(root.is_valid());
+
+        buff.clear();
+        build_deep_array(buff, 21);
+        json::root root2(buff);
+        t.REQUIRE(!root2.is_valid());
+}
+
 int main(int argc, char** argv)
 {
         bool do_perf = false;
@@ -282,6 +309,7 @@ int main(int argc, char** argv)
         t.ADD_TEST(test_escaped);
         t.ADD_TEST(test_reported_error_1);
         t.ADD_TEST(test_invalid_json);
+        t.ADD_TEST(test_recursive_json);
 
         return t.run();
 }
