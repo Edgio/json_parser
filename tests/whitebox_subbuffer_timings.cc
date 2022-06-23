@@ -1,6 +1,6 @@
 /*********** -*- mode: c++; c-file-style: "sailfish"; -*- **********
  *
- * Copyright (c) 2011-2012 EdgeCast Networks, Inc.
+ * Copyright (c) 2011-2012 Edgio Networks, Inc.
  * All Rights Reserved
  *
  ****************************************************************/
